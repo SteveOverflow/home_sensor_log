@@ -19,7 +19,6 @@ import com.android.volley.toolbox.NetworkImageView;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.Date;
 
@@ -130,9 +129,9 @@ public class MainActivity extends ActionBarActivity {
 
             String dateString = curInfo.getString("date");
 
-            Date readingDate = DateFormater.parseJavascriptDate(dateString);
+            Date readingDate = DateFormatter.parseJavascriptDate(dateString);
 
-            dateTextView.setText(DateFormater.formatDisplayDate(readingDate));
+            dateTextView.setText(DateFormatter.formatDisplayDate(readingDate));
             tempTextView.setText("Temperature: " + curInfo.getString("tempVal")+ " " + (char) 0x00B0+"C");
             humidityTextView.setText("Humidity: "+curInfo.getString("humidityVal")+"%");
 
