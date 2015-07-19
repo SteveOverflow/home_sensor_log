@@ -7,7 +7,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -20,7 +22,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -83,6 +87,7 @@ public class MainActivity extends ActionBarActivity {
                         mTextView.setText("Current Status");
                         try {
                             setCurrentStatus(response.getJSONObject(0));
+                            populatePrevious(response);
                             Log.d("JSON", response.toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -111,21 +116,11 @@ public class MainActivity extends ActionBarActivity {
         TextView dateTextView = (TextView) findViewById(R.id.dateVal);
         TextView tempTextView = (TextView) findViewById(R.id.tempVal);
         TextView humidityTextView = (TextView) findViewById(R.id.humidtyVal);
+        TextView pressureTextView = (TextView) findViewById(R.id.pressureVal);
 
         try {
             int lightVal = curInfo.getInt("lightVal");
-
-            if(lightVal<30){
-                img="dark";
-            }else if(lightVal<200){
-                img="dim";
-            }else if(lightVal<500){
-                img="light";
-            }else if(lightVal<800){
-                img="bright";
-            }else{
-                img="very_bright";
-            }
+            img = ReadingsUtil.evaluateLightLevel(lightVal);
 
             String dateString = curInfo.getString("date");
 
@@ -135,6 +130,9 @@ public class MainActivity extends ActionBarActivity {
             tempTextView.setText("Temperature: " + curInfo.getString("tempVal")+ " " + (char) 0x00B0+"C");
             humidityTextView.setText("Humidity: "+curInfo.getString("humidityVal")+"%");
 
+            Long pressure = curInfo.getLong("pressureVal");
+            pressureTextView.setText("Pressure: "+(pressure / 10.0)+" kPa");
+
         }catch(JSONException je){
             je.printStackTrace();;
         }
@@ -142,5 +140,24 @@ public class MainActivity extends ActionBarActivity {
         if(!img.trim().equalsIgnoreCase("")) {
             imageView.setImageUrl(res.getString(R.string.baseURL) + "/images/"+ img +".png", mImageLoader);
         }
+    }
+
+    private void populatePrevious(JSONArray readings) {
+        final List<JSONObject> list = new ArrayList<JSONObject>();
+
+        if (readings == null || readings.length() < 2)
+            return; //either no data or only the current reading passed.
+
+        for (int i = 1; i < readings.length(); i++) {  //start at the second reading and loop over the rest of the list
+            try {
+                list.add(readings.getJSONObject(i));
+            } catch (JSONException je) {
+                je.printStackTrace();
+            }
+        }
+
+        final ListView listView = (ListView) findViewById(R.id.listView);
+        final ReadingArrayAdapter adapter = new ReadingArrayAdapter(this, list);
+        listView.setAdapter(adapter);
     }
 }
